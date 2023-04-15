@@ -1,0 +1,29 @@
+{
+  "name": "soreu-work-manager",
+  "version": "0.0.1",
+  "description": "Work manager for soreu duty",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "test": "vitest"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.9",
+    "autoprefixer": "^10.4.14",
+    "jsdom": "^21.1.1",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.3.1",
+    "vite": "^4.1.1",
+    "vite-plugin-solid": "^2.5.0",
+    "vitest": "^0.29.8"
+  },
+  "dependencies": {
+    "daisyui": "^2.51.5",
+    "luxon": "^3.3.0",
+    "solid-js": "^1.6.10",
+    "websocket-heartbeat-js": "^1.1.2"
+  }
+}
