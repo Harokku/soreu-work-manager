@@ -3,6 +3,7 @@
 import {createSignal, For, onCleanup} from "solid-js";
 import {parseFromNow} from "../utils/timeParser";
 import IssueDetail from "./IssueDetail";
+import issueStore from "../store/issueStore";
 
 function Issue(props) {
     const [elapsed, setElapsed] = createSignal(parseFromNow(props.issue.timestamp)) // <-- Get elapsed time from now
@@ -11,12 +12,18 @@ function Issue(props) {
     let elapsedInterval = setInterval(() => setElapsed(parseFromNow(props.issue.timestamp)), 15000)
     onCleanup(() => clearInterval(elapsedInterval))
 
+    // Close issue to backend
+    function closeIssue() {
+        issueStore.closeIssue(props.issue.id) // <-- Optimistically close the issue
+        issueStore.doCloseIssue(props.issue.id) // <-- Call the API to close the issue
+    }
+
+
+
     return (
         <>
-            <pre>{JSON.stringify(props.issue, null, 1)}</pre>
-
             <section className="bg-gray-100 text-gray-800">
-                <div className="container max-w-5xl px-4 py-12 mx-auto">
+                <div className="container my-4 max-w-md px-2 py-4 mx-auto">
                     <div className="grid gap-4 mx-4 sm:grid-cols-12">
                         <div className="col-span-12 sm:col-span-3">
                             {/*Title*/}
@@ -25,12 +32,15 @@ function Issue(props) {
                                 <h3 className="text-3xl font-semibold first-letter:uppercase">{props.issue.title}</h3>
                                 <span
                                     className="text-sm font-bold tracking-wider uppercase text-gray-600">{props.issue.operator}</span>
+                                <button className="btn btn-outline btn-primary mt-6"
+                                        onClick={() => closeIssue()}>Chiudi
+                                </button>
                             </div>
                         </div>
                         <div className="relative col-span-12 px-4 space-y-6 sm:col-span-9">
                             {/*Update cycle*/}
                             <div
-                                className="col-span-12 space-y-12 relative px-4 sm:col-span-8 sm:space-y-8 sm:before:absolute sm:before:top-2 sm:before:bottom-0 sm:before:w-0.5 sm:before:-left-3 before:bg-gray-300">
+                                className="col-span-12 space-y-12 relative px-4 sm:col-span-8 sm:space-y-2 sm:before:absolute sm:before:top-2 sm:before:bottom-0 sm:before:w-0.5 sm:before:-left-3 before:bg-gray-300">
                                 {/*Update detail*/}
                                 <div
                                     className="flex flex-col sm:relative sm:before:absolute sm:before:top-2 sm:before:w-4 sm:before:h-4 sm:before:rounded-full sm:before:left-[-35px] sm:before:z-[1] before:bg-violet-600">
@@ -39,7 +49,7 @@ function Issue(props) {
                                     <p className="mt-3">{props.issue.note}</p>
                                 </div>
 
-                                <For each={props.issue.detail} >
+                                <For each={props.issue.detail}>
                                     {detail => (
                                         <IssueDetail detail={detail}/>
                                     )}

@@ -12,18 +12,6 @@ function createIssueStore() {
         return response.json()
     }
 
-    // TODO: implement
-    // Add issue to data array
-    const addIssue = (issue) => {
-
-    }
-
-    // TODO: implement
-    // Add detail to data array
-    const addDetail = (detail) => {
-
-    }
-
     // Post issue to backend
     const doPostIssue = async (issue) => {
         // Post data to API
@@ -34,7 +22,7 @@ function createIssueStore() {
             },
             body: JSON.stringify(issue)
         })
-        return await response.json()
+        return response.json()
     }
 
     // Close issue to backend
@@ -46,11 +34,43 @@ function createIssueStore() {
                 'Content-Type': 'application/json'
             }
         })
-        return await response.json()
+        return response.json()
     }
 
     // --------------------
     // --- Solid Store ---
+
+    // TODO: implement
+    // Add issue to data array
+    const addIssue = (issue) => {
+        let newIssue = data();  // <-- get actual data from getter
+        // if data is not yet loaded, create empty array
+        if (!newIssue.data) {
+            newIssue["data"] = [];
+        }
+        newIssue["data"] = [...newIssue.data, issue]; // <-- add new issue to data array
+        mutate({...newIssue}); // <-- mutate data optimistically
+        //postIssue(issue)
+        // refetch() // <-- refetch data from backend
+    }
+
+    // TODO: implement
+    // Add detail to data array
+    const addDetail = (detail) => {
+        let issue = data(); // <-- get actual data from getter
+        // search for issue with id=detail.issue_id
+        let issueIndex = issue.data.findIndex((item) => item.id === detail.issue_id);
+        // if issue have no detail, create empty array
+        if (!issue.data[issueIndex].detail) {
+            issue.data[issueIndex].detail = []
+        }
+        // if issue is found, add detail to issue
+        if (issueIndex !== -1) {
+            issue.data[issueIndex].detail = [...issue.data[issueIndex].detail, detail];
+            mutate({...issue}); // <-- mutate data optimistically
+        }
+        // refetch() // <-- refetch data from backend
+    }
 
     // Close issue locally
     const closeIssue = (id) => {
