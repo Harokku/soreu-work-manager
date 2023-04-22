@@ -6,15 +6,15 @@ import {For} from "solid-js";
 
 function IssueList(props) {
 
-    const {data} = issueStore
+    const {issues} = issueStore
 
     return (
         <>
             {/*In case of error, show a message to client*/}
-            {data.error && <div>Error: {data.error.message}</div>}
+            {issues.error && <div>Error: {issues.error.message}</div>}
 
-            {/*If data is available show issue list*/}
-            {data.state === "ready" && (
+            {/*If issues is available show issue list*/}
+            {issues.status === "resolved" && (
                 <div className="flex-col">
                     <For each={props.category}>{issue =>
                         <Issue issue={issue}/>
@@ -23,8 +23,8 @@ function IssueList(props) {
                 </div>
             )}
 
-            {/*If data is loading, show a banner*/}
-            {data.loading &&
+            {/*If issues is loading, show a banner*/}
+            {issues.status === "pending" &&
                 <div className="alert alert-info shadow-lg absolute bottom-0">
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

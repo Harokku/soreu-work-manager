@@ -13,7 +13,7 @@ export const ws = new WebsocketHeartbeatJs({
 // When the websocket is opened, log it
 ws.onopen = (e) => {
     console.log("Websocket connected");
-    if (issues.data.state !== "unresolved") {
+    if (issues.status !== "unresolved") {
         issues.refetch();
     }
 };
@@ -56,7 +56,7 @@ ws.onmessage = ((e) => {
                 break
             case "Issue closed":
                 console.info(`received new ${obj?.id}:\t ${obj?.operation}`);
-                issues.closeIssue(obj.data.id);
+                issues.close(obj.data.id);
                 break
             case "Detail created":
                 console.info(`received new ${obj?.id}:\t ${obj?.operation}`);

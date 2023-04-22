@@ -1,4 +1,4 @@
-import {batch, createRoot} from "solid-js";
+import {createRoot} from "solid-js";
 import {createStore, produce} from "solid-js/store";
 import {dividePerCategory} from "./utils";
 
@@ -131,6 +131,7 @@ function createIssueStore() {
         issuesPerCategory,
         fetchData,
         refetch,
+        closeIssue,
         addIssue,
         addDetail,
         close,

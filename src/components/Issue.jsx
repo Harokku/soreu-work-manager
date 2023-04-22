@@ -14,8 +14,8 @@ function Issue(props) {
 
     // Close issue to backend
     function closeIssue() {
-        issueStore.closeIssue(props.issue.id) // <-- Optimistically close the issue
-        issueStore.doCloseIssue(props.issue.id) // <-- Call the API to close the issue
+        issueStore.close(props.issue.id) // <-- Optimistically close the issue
+        issueStore.closeIssue(props.issue.id) // <-- Call the API to close the issue
     }
 
 
