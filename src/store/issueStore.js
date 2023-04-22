@@ -1,108 +1,140 @@
-import {createResource, createRoot, createMemo} from "solid-js"
-import {dividePerCategory} from "./utils"
+import {batch, createRoot} from "solid-js";
+import {createStore, produce} from "solid-js/store";
+import {dividePerCategory} from "./utils";
 
 function createIssueStore() {
 
-    // --------------------
-    // --- Backend API ---
+    // -------------------------
+    // --- Fetch data from API ---
 
-    // Fetch data from API
+    const backend = import.meta.env.VITE_BACKEND_URL; // <-- Get backend URL from .env file
+    let controller = null; // <-- Create AbortController
+
+    // Fetch issues from API
     const fetchIssues = async () => {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/issue?mode=full`)
-        return response.json()
+        setIssues({status: "pending"})
+        controller = new AbortController(); // <-- Instantiate new AbortController
+        const response = await fetch(`${backend}/issue?mode=full`);
+        // check if response is not ok
+        if (!response.ok) {
+            throw new Error(`HTTP fetchIssues error! status: ${response.status}`); // <-- throw error
+        }
+        controller = null // <-- reset the AbortController
+        return await response.json(); // <-- return json data
     }
 
-    // Post issue to backend
-    const doPostIssue = async (issue) => {
-        // Post data to API
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/issue`, {
+    // Cancel fetch request
+    const cancelFetch = () => {
+        if (controller) controller.abort(); // <-- Abort fetch request
+    }
+
+    //  Post issue to backend
+    const postIssue = async (issue) => {
+        const response = await fetch(`${backend}/issue`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(issue)
         })
-        return response.json()
+        // Check if response is not ok
+        if (!response.ok) {
+            throw new Error(`HTTP postIssue error! status: ${response.status}`); // <-- throw error
+        }
+        return await response.json()
     }
 
     // Close issue to backend
-    const doCloseIssue = async (id) => {
-        // Put data to API
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/issue/close/${id}`, {
+    const closeIssue = async (id) => {
+        const response = await fetch(`${backend}/issue/close/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             }
         })
-        return response.json()
+        // Check if response is not ok
+        if (!response.ok) {
+            throw new Error(`HTTP closeIssue error! status: ${response.status}`); // <-- throw error
+        }
+        return await response.json()
     }
 
-    // --------------------
+
+    // -------------------------
     // --- Solid Store ---
-
-    // TODO: implement
-    // Add issue to data array
-    const addIssue = (issue) => {
-        let newIssue = data();  // <-- get actual data from getter
-        // if data is not yet loaded, create empty array
-        if (!newIssue.data) {
-            newIssue["data"] = [];
-        }
-        newIssue["data"] = [...newIssue.data, issue]; // <-- add new issue to data array
-        mutate({...newIssue}); // <-- mutate data optimistically
-        //postIssue(issue)
-        // refetch() // <-- refetch data from backend
-    }
-
-    // TODO: implement
-    // Add detail to data array
-    const addDetail = (detail) => {
-        let issue = data(); // <-- get actual data from getter
-        // search for issue with id=detail.issue_id
-        let issueIndex = issue.data.findIndex((item) => item.id === detail.issue_id);
-        // if issue have no detail, create empty array
-        if (!issue.data[issueIndex].detail) {
-            issue.data[issueIndex].detail = []
-        }
-        // if issue is found, add detail to issue
-        if (issueIndex !== -1) {
-            issue.data[issueIndex].detail = [...issue.data[issueIndex].detail, detail];
-            mutate({...issue}); // <-- mutate data optimistically
-        }
-        // refetch() // <-- refetch data from backend
-    }
-
-    // Close issue locally
-    const closeIssue = (id) => {
-        // remove item with id=id from data array
-        let issue = data() // <-- get actual data from getter
-        issue.data = issue.data.filter(item => item.id !== id) // <-- remove item
-        mutate({...issue}) // <-- mutate data optimistically
-    }
-
-    const [data, {mutate, refetch}] = createResource(fetchIssues) // <-- createResource
-
-    // aggregate data per category
-    const aggregatedData = createMemo(() => {
-        const issues = data()
-        // check if issue.data exist
-        if (issues) {
-            return dividePerCategory(issues.data) // <-- dividePerCategory
-        } else
-            return {} // <-- return empty object
+    const [issues, setIssues] = createStore({
+        status: "unresolved",
+        data: [],
+        error: null,
     })
 
-    // export data and functions
+    // Fetch issues from API
+    const fetchData = () => {
+        fetchIssues()
+            .then(data =>
+                setIssues({status: "resolved", data: data.data, error: null})
+            )
+            .catch(error => {
+                setIssues({status: "rejected", data: [], error: error.message})
+            })
+    }
+
+    // Re fetch issues from API
+    const refetch = () => {
+        cancelFetch(); // <-- Cancel fetch request
+        fetchData(); // <-- Fetch issues from API
+    }
+
+    // Add issue to the store
+    const addIssue = (issue) => {
+        // add issue to data array
+        setIssues('data', item => [...item, issue]);
+    }
+
+    // Add detail to the store
+    const addDetail = (detail) => {
+        // add detail to data array
+        // search issue index with id = detail.issue_id
+        const index = issues.data.findIndex(item => item.id === detail.issue_id);
+        // if issue have no details, create details array and append new detail
+        if (!issues.data[index].detail) {
+            setIssues('data', index, 'detail', [detail])
+        } else {
+            // else append new detail to details array
+            setIssues('data', index, 'detail', item => [...item, detail])
+        }
+    }
+
+    // Close issue in the store
+    const close = (id) => {
+        // set item with id = id to undefined
+        setIssues('data', item => item.filter(item => item.id !== id));
+    }
+
+    // -------------------------
+    // --- Computed values ---
+
+    // aggregate issues per category
+    const issuesPerCategory = () => {
+        // check if fetch is resolved
+        if (issues.status === "resolved") {
+            // divide issues per category
+            return dividePerCategory(issues.data);
+        } else {
+            return {};
+        }
+    }
+
+
     return {
-        data,
-        aggregatedData,
+        issues,
+        issuesPerCategory,
+        fetchData,
         refetch,
         addIssue,
         addDetail,
-        doPostIssue,
-        doCloseIssue,
-        closeIssue,
+        close,
     }
 }
 
-export default createRoot(createIssueStore)
+export default createRoot(createIssueStore);
