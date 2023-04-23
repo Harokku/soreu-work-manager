@@ -16,8 +16,8 @@ function IssueList(props) {
             {/*If issues is available show issue list*/}
             {issues.status === "resolved" && (
                 <div className="flex-col">
-                    <For each={props.category}>{issue =>
-                        <Issue issue={issue}/>
+                    <For each={props.category}>{(issue) =>
+                        <Issue issue={issue} index={props.index}/>
                     }
                     </For>
                 </div>
