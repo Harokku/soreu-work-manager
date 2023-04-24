@@ -2,6 +2,7 @@
 
 import WebsocketHeartbeatJs from "websocket-heartbeat-js";
 import issues from "./store/issueStore";
+import {setConnLost} from "./App"
 
 // Create a new websocket connection and return it
 export const ws = new WebsocketHeartbeatJs({
@@ -12,6 +13,7 @@ export const ws = new WebsocketHeartbeatJs({
 
 // When the websocket is opened, log it
 ws.onopen = (e) => {
+    setConnLost(false) // reset connection lost
     console.log("Websocket connected");
     if (issues.status !== "unresolved") {
         issues.refetch();
@@ -21,6 +23,7 @@ ws.onopen = (e) => {
 // On websocket reconnect, refetch the issues
 ws.onreconnect = (() => {
     console.log("Websocket reconnecting");
+    setConnLost(true); // set connection lost
 });
 
 // On websocket close, log it

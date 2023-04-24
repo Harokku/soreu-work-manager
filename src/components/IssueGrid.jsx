@@ -17,7 +17,6 @@ function IssueGrid() {
 
     return (
         <>
-            <button class="btn btn-active" onClick={() => issueStore.refetch()}>Refresh</button>
             <div className="flex flex-wrap gap-6 mx-6">
                 <div>
                     <h1 className={`sticky top-0 z-10 ${bg300(0)} rounded-t-xl text-center uppercase font-semibold text-3xl after:block after:w-24 after:h-3 after:rounded-md ${afterBg600(0)} after:mx-auto`}>Personale</h1>
@@ -41,7 +40,7 @@ function IssueGrid() {
                 <For
                     each={categories()}
                     fallback={
-                        <div class="absolute bottom-0 left-0 alert alert-info shadow-lg">
+                        <div class="absolute bottom-0 left-0 my-2 alert alert-info drop-shadow-lg">
                             <div>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                      class="stroke-current flex-shrink-0 w-6 h-6">

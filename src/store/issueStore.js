@@ -44,6 +44,22 @@ function createIssueStore() {
         return await response.json()
     }
 
+    //  Post detail to backend
+    const postDetail = async (detail) => {
+        const response = await fetch(`${backend}/issue/detail`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(detail)
+        })
+        // Check if response is not ok
+        if (!response.ok) {
+            throw new Error(`HTTP postDetail error! status: ${response.status}`); // <-- throw error
+        }
+        return await response.json()
+    }
+
     // Close issue to backend
     const closeIssue = async (id) => {
         const response = await fetch(`${backend}/issue/close/${id}`, {
@@ -131,6 +147,7 @@ function createIssueStore() {
         issuesPerCategory,
         fetchData,
         refetch,
+        postDetail,
         closeIssue,
         addIssue,
         addDetail,
